@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { withStyles } from '@material-ui/core/styles'
+import { connect } from 'react-redux'
 import InputLabel from '@material-ui/core/InputLabel'
 import MenuItem from '@material-ui/core/MenuItem'
 import FormControl from '@material-ui/core/FormControl'
@@ -8,6 +9,7 @@ import Select from '@material-ui/core/Select'
 import Button from '@material-ui/core/Button'
 import { subscribe } from './subscriptionService'
 import Stream from './GameStream'
+import { updateStream } from './actions/streamActionCreators'
 
 const styles = theme => ({
   form: {
@@ -28,9 +30,15 @@ const styles = theme => ({
   },
 })
 
-class GameSelector extends Component {
+const mapDispatchToProps = dispatch => ({
+  toggleTheaterMode: theaterMode => dispatch(updateStream({ theaterMode })),
+})
 
-  getPlayPauseText = streaming => (streaming ? 'Pause' : 'Start Stream')
+const mapStateToProps = state => ({
+  theaterMode: state.stream.theaterMode,
+})
+
+class GameSelector extends Component {
 
   state = {
     archiveGames: [{
@@ -45,9 +53,16 @@ class GameSelector extends Component {
     selectedGameName: '',
     streaming: false,
     playBackSpeed: 0.5,
-    playPauseText: this.getPlayPauseText(false),
+    playPauseText: 'Start Stream',
     subscribedTo: '',
   }
+
+  getPlayPauseText = streaming => (streaming ? 'Pause' : 'Start Stream')
+
+  setSelectedGame = (selectedGameName = '', selectedGame = {}) => this.setState({
+    selectedGameName,
+    selectedGame,
+  })
 
   toggleStream = () => {
     const streaming = !this.state.streaming
@@ -61,21 +76,19 @@ class GameSelector extends Component {
         this.state.selectedGame.url,
         this.state.playBackSpeed,
         (err, play) => {
-          if (this.state.streaming) this.setState({
-            plays: this.state.plays.concat(play),
-          })
+          if (this.state.streaming) {
+            this.setState({
+              plays: this.state.plays.concat(play),
+            })
+          }
         }
       )
       this.setState({
         subscribedTo: this.state.selectedGame.name,
       })
     }
+    this.props.toggleTheaterMode(!this.props.theaterMode)
   }
-
-  setSelectedGame = (selectedGameName = '', selectedGame = {}) => this.setState({
-    selectedGameName,
-    selectedGame,
-  })
 
   makeSelection = event => {
     const { value, name } = event.target
@@ -97,10 +110,12 @@ class GameSelector extends Component {
   }
 
   render () {
-    const { classes } = this.props
+    const { classes, theaterMode } = this.props
 
     return (
       <div className={classes.app}>
+
+        theaterMode (redux): { JSON.stringify(theaterMode) }
 
         <form
           className={classes.form}
@@ -138,7 +153,9 @@ class GameSelector extends Component {
                   id: 'game',
                 }}
               >
-                {/* Select requires same value type as MenuItem, so only if a display value can be added, vals can be index and selectedGameName can be removed for selectedGame.name */}
+                {/* Select requires same value type as MenuItem, so only
+                if a display value can be added, vals can be index and
+                selectedGameName can be removed for selectedGame.name */}
                 {this.state.archiveGames.map(game =>
                   (
                     <MenuItem
@@ -148,8 +165,7 @@ class GameSelector extends Component {
                       {game.name}
                     </MenuItem>
                   )
-                  )}
-                }
+                )}
               </Select>
             </FormControl>
 
@@ -187,6 +203,11 @@ class GameSelector extends Component {
 
 GameSelector.propTypes = {
   classes: PropTypes.object.isRequired,
+  toggleTheaterMode: PropTypes.func.isRequired,
+  theaterMode: PropTypes.bool.isRequired,
 }
 
-export default withStyles(styles)(GameSelector)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withStyles(styles)(GameSelector))

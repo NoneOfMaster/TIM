@@ -5,7 +5,7 @@ import GameSelector from './GameSelector'
 import './App.css'
 import bball from './bball.png'
 
-const styles = theme => ({
+const styles = () => ({
   app: {
     'text-align': 'center',
   },
@@ -30,6 +30,7 @@ const styles = theme => ({
 
 const App = props => {
   const { classes } = props
+
   return (
     <div className={classes.app}>
 
