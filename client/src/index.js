@@ -1,12 +1,17 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { AppContainer } from 'react-hot-loader'
-import { createStore } from 'redux'
+import { applyMiddleware, compose, createStore } from 'redux'
 import { Provider } from 'react-redux'
+import { createBrowserHistory } from 'history'
+import { connectRouter, routerMiddleware, ConnectedRouter } from 'connected-react-router'
+import { Route, Switch } from 'react-router-dom'
 import rootReducer from './reducers'
 import './index.css'
 import App from './App'
 import registerServiceWorker from './registerServiceWorker'
+
+const history = createBrowserHistory()
 
 const defaultState = {
   stream: {
@@ -14,18 +19,38 @@ const defaultState = {
   },
 }
 
+/* eslint-disable no-underscore-dangle */
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
+/* eslint-enable */
+
 const store = createStore(
-  rootReducer,
+  connectRouter(history)(rootReducer),
   defaultState,
-  window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
+  composeEnhancers(
+    applyMiddleware(
+      routerMiddleware(history),
+    ),
+  ),
 )
 
 const render = Component => {
   ReactDOM.render(
     <Provider store={store}>
-      <AppContainer>
-        <App />
-      </AppContainer>
+      <ConnectedRouter history={history}>
+        <div>
+          <Switch>
+            <Route
+              exact
+              path="/"
+              render={() => (
+                <AppContainer>
+                  <App />
+                </AppContainer>)}
+            />
+            <Route render={() => (<div>default</div>)} />
+          </Switch>
+        </div>
+      </ConnectedRouter>
     </Provider>,
     document.getElementById('root')
   )

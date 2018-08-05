@@ -17,6 +17,7 @@
       "no-shadow": "off",
       "object-curly-newline": "off",
       "no-trailing-spaces": "off",
+      "function-paren-newline": "off",
       "padded-blocks": "off",
       "react/forbid-prop-types": "off",
       "no-console": "off",
